@@ -1,6 +1,6 @@
 """Private local storage for uploaded source PDFs."""
 
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from fastapi import HTTPException, UploadFile, status
 
@@ -38,3 +38,13 @@ async def save_pdf(upload: UploadFile) -> tuple[str, int]:
     except Exception:
         temporary.unlink(missing_ok=True)
         raise
+
+
+def upload_exists(upload_id: str) -> bool:
+    """Check for a stored upload using its UUID, not a client-provided path."""
+    try:
+        normalized_id = UUID(upload_id)
+    except ValueError:
+        return False
+
+    return (UPLOAD_DIR / f"{normalized_id}.pdf").is_file()

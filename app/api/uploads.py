@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, File, UploadFile, status
 
+from app.repositories.jobs import create_job
 from app.services.validation import read_and_validate_pdf_header
 from app.storage.local import save_pdf
 
@@ -21,9 +22,13 @@ async def upload_pdf(file: UploadFile = File(...)) -> dict[str, str | int]:
     finally:
         await file.close()
 
+    job = create_job(upload_id)
+
     return {
         "upload_id": upload_id,
+        "job_id": job["job_id"],
+        "status": job["status"],
         "original_filename": file.filename or "upload.pdf",
         "size_bytes": size_bytes,
-        "message": "PDF uploaded. Full PDF parsing will happen during processing.",
+        "message": "PDF uploaded and queued for processing.",
     }
